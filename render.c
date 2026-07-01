@@ -61,13 +61,13 @@ static void draw_penguin(SDL_Renderer *r, int x, int y,
             uint8_t R, G, B;
             if      (v == 1) { R=body.r; G=body.g; B=body.b; }
             else if (v == 2) { R=255; G=126; B=0; }
-            else             { R=240; G=240; B=240; } /* barriga */
+            else             { R=240; G=240; B=240; }
             ppx(r, col, row, ox, oy, R, G, B);
         }
     }
 }
 
-#define BK 4   /* tamanho do bloco de paisagem */
+#define BK 4  
 
 
 static void bfill(SDL_Renderer *r, int x, int y, int w, int h,
