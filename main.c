@@ -12,7 +12,6 @@
 int main(void) {
     srand((unsigned int)time(NULL));
 
-    /* Inicializa SDL2 */
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "SDL_Init erro: %s\n", SDL_GetError());
         return 1;
@@ -24,7 +23,6 @@ int main(void) {
         return 1;
     }
 
-    /* Cria janela */
     SDL_Window *window = SDL_CreateWindow(
         "PONG",
         SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED,
@@ -38,7 +36,6 @@ int main(void) {
         return 1;
     }
 
-    /* Cria renderer com VSync */
     SDL_Renderer *sdl_renderer = SDL_CreateRenderer(
         window, -1,
         SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC
@@ -51,7 +48,6 @@ int main(void) {
         return 1;
     }
 
-    /* Inicializa renderer de jogo */
     Renderer renderer;
     if (render_init(&renderer, sdl_renderer) != 0) {
         fprintf(stderr, "Falha ao inicializar renderer\n");
@@ -62,7 +58,6 @@ int main(void) {
         return 1;
     }
 
-    /* Carrega scoreboard */
     Scoreboard sb;
     if (scoreboard_load(&sb, SCOREBOARD_FILE) == 0) {
         printf("Scoreboard carregado: %d entradas.\n", sb.count);
@@ -70,22 +65,18 @@ int main(void) {
         printf("Scoreboard novo criado.\n");
     }
 
-    /* Estado do jogo */
     Game game;
     game_init(&game);
 
-    /* Loop principal */
     uint32_t prev_ticks = SDL_GetTicks();
     int running = 1;
 
     while (running) {
-        /* Delta time */
         uint32_t now   = SDL_GetTicks();
         float    dt    = (now - prev_ticks) / 1000.0f;
-        if (dt > 0.05f) dt = 0.05f; /* cap em 50ms para evitar tunneling */
+        if (dt > 0.05f) dt = 0.05f;
         prev_ticks = now;
 
-        /* Processa eventos */
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
             if (input_handle(&event, &game, &sb)) {
@@ -93,17 +84,13 @@ int main(void) {
             }
         }
 
-        /* Atualiza input contínuo */
         input_update_paddles(&game);
 
-        /* Atualiza lógica */
         game_update(&game, dt);
 
-        /* Renderiza */
         render_frame(&renderer, &game, &sb);
     }
 
-    /* Limpeza */
     render_destroy(&renderer);
     SDL_DestroyRenderer(sdl_renderer);
     SDL_DestroyWindow(window);
