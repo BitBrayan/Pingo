@@ -2,10 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 
-/* Checksum XOR byte a byte sobre os campos de dados */
 uint32_t scoreboard_checksum(const Scoreboard *sb) {
     const uint8_t *p = (const uint8_t *)sb;
-    /* Calcula sobre tudo exceto o campo checksum (últimos 4 bytes) */
     size_t len = sizeof(Scoreboard) - sizeof(uint32_t);
     uint32_t csum = 0;
     for (size_t i = 0; i < len; i++) {
@@ -26,7 +24,6 @@ int scoreboard_load(Scoreboard *sb, const char *path) {
     }
     fclose(f);
 
-    /* Valida checksum */
     uint32_t expected = scoreboard_checksum(sb);
     if (sb->checksum != expected) {
         memset(sb, 0, sizeof(Scoreboard));
@@ -36,7 +33,6 @@ int scoreboard_load(Scoreboard *sb, const char *path) {
 }
 
 int scoreboard_save(const Scoreboard *sb, const char *path) {
-    /* Cria cópia para calcular e armazenar checksum */
     Scoreboard tmp = *sb;
     tmp.checksum = scoreboard_checksum(&tmp);
 
@@ -52,10 +48,8 @@ int scoreboard_save(const Scoreboard *sb, const char *path) {
 }
 
 void scoreboard_insert(Scoreboard *sb, const ScoreEntry *entry) {
-    /* Determina pontuação do vencedor para ordenação */
     int new_score = (entry->score_p1 > entry->score_p2) ? entry->score_p1 : entry->score_p2;
 
-    /* Encontra posição de inserção (maior pontuação primeiro) */
     int pos = sb->count;
     for (int i = 0; i < sb->count; i++) {
         int existing = (sb->entries[i].score_p1 > sb->entries[i].score_p2)
@@ -65,11 +59,8 @@ void scoreboard_insert(Scoreboard *sb, const ScoreEntry *entry) {
             break;
         }
     }
-
-    /* Só insere se houver espaço ou se for melhor que o último */
     if (pos >= SCOREBOARD_MAX) return;
 
-    /* Desloca entradas para baixo */
     int limit = sb->count < SCOREBOARD_MAX ? sb->count : SCOREBOARD_MAX - 1;
     for (int i = limit; i > pos; i--) {
         sb->entries[i] = sb->entries[i - 1];
