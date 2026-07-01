@@ -3,9 +3,6 @@
 #include <string.h>
 #include <stdlib.h>
 
-/* -----------------------------------------------------------------------
- * Helpers
- * --------------------------------------------------------------------- */
 static void set_gray(SDL_Renderer *r)   { SDL_SetRenderDrawColor(r, 150, 150, 150, 255); }
 static void set_yellow(SDL_Renderer *r) { SDL_SetRenderDrawColor(r, 255, 220,  60, 255); }
 
@@ -16,7 +13,6 @@ static void fill_rect(SDL_Renderer *r, int x, int y, int w, int h,
     SDL_RenderFillRect(r, &rc);
 }
 
-/* Desenha um "pixel" da pixel-art com tamanho PS×PS */
 #define PS 3   /* tamanho de cada pixel do sprite na tela */
 
 static void ppx(SDL_Renderer *r, int gx, int gy, int ox, int oy,
@@ -24,45 +20,35 @@ static void ppx(SDL_Renderer *r, int gx, int gy, int ox, int oy,
     fill_rect(r, ox + gx*PS, oy + gy*PS, PS, PS, R, G, B);
 }
 
-/* -----------------------------------------------------------------------
- * Sprite 10×22 — extraído pixel a pixel da referência
- * 0=transparente 1=corpo 2=laranja 3=barriga branca
- * --------------------------------------------------------------------- */
 static const uint8_t PENGUIN[22][10] = {
-    {0,0,0,1,1,1,1,0,0,0},  /*  0 topo cabeça */
-    {0,0,1,1,1,1,1,1,0,0},  /*  1 */
-    {0,1,1,1,1,1,1,1,1,0},  /*  2 */
-    {2,2,2,2,1,1,1,1,1,0},  /*  3 bico (esquerda) */
-    {0,0,1,1,3,1,1,1,0,0},  /*  4 início barriga */
-    {0,0,1,3,3,3,1,1,0,0},  /*  5 */
-    {0,0,0,1,3,3,3,1,1,0},  /*  6 */
-    {0,0,0,0,3,3,3,1,1,0},  /*  7 */
-    {0,0,0,0,3,3,3,1,1,1},  /*  8 */
-    {0,0,0,0,3,3,3,1,1,1},  /*  9 */
-    {0,0,0,0,3,3,3,1,1,1},  /* 10 */
-    {0,0,0,0,3,3,3,1,1,1},  /* 11 */
-    {0,0,0,0,3,3,1,1,1,1},  /* 12 */
-    {0,0,0,0,3,1,1,1,1,1},  /* 13 fim barriga */
-    {0,0,0,0,1,1,1,1,1,1},  /* 14 */
-    {0,0,0,0,1,1,1,1,1,0},  /* 15 */
-    {0,0,0,1,1,1,1,1,1,0},  /* 16 */
-    {0,0,1,1,1,1,1,1,1,0},  /* 17 */
-    {0,0,1,1,1,1,1,1,0,0},  /* 18 */
-    {0,0,1,1,1,1,1,1,0,0},  /* 19 */
-    {0,0,1,2,2,2,2,2,0,0},  /* 20 pés */
-    {0,2,2,2,2,2,2,2,0,0},  /* 21 pés */
+    {0,0,0,1,1,1,1,0,0,0},  
+    {0,0,1,1,1,1,1,1,0,0},  
+    {0,1,1,1,1,1,1,1,1,0},  
+    {2,2,2,2,1,1,1,1,1,0},  
+    {0,0,1,1,3,1,1,1,0,0},  
+    {0,0,1,3,3,3,1,1,0,0},  
+    {0,0,0,1,3,3,3,1,1,0},  
+    {0,0,0,0,3,3,3,1,1,0},  
+    {0,0,0,0,3,3,3,1,1,1},  
+    {0,0,0,0,3,3,3,1,1,1},  
+    {0,0,0,0,3,3,3,1,1,1},  
+    {0,0,0,0,3,3,3,1,1,1},  
+    {0,0,0,0,3,3,1,1,1,1},  
+    {0,0,0,0,3,1,1,1,1,1},  
+    {0,0,0,0,1,1,1,1,1,1},  
+    {0,0,0,0,1,1,1,1,1,0}, 
+    {0,0,0,1,1,1,1,1,1,0}, 
+    {0,0,1,1,1,1,1,1,1,0}, 
+    {0,0,1,1,1,1,1,1,0,0}, 
+    {0,0,1,1,1,1,1,1,0,0}, 
+    {0,0,1,2,2,2,2,2,0,0}, 
+    {0,2,2,2,2,2,2,2,0,0}, 
 };
 #define SPRITE_COLS 10
 #define SPRITE_ROWS 22
 
-/* draw_penguin
- * x,y    = canto superior esquerdo da área PADDLE_W × PADDLE_H
- * body   = cor do corpo
- * mirror = 1 → espelha horizontalmente (P1 enfrenta direita)
- *          0 → original            (P2 enfrenta esquerda) */
 static void draw_penguin(SDL_Renderer *r, int x, int y,
                          SDL_Color body, int mirror) {
-    /* Centralizar sprite na área do paddle */
     int total_w = SPRITE_COLS * PS;
     int total_h = SPRITE_ROWS * PS;
     int ox = x + (PADDLE_W  - total_w) / 2;
@@ -82,19 +68,12 @@ static void draw_penguin(SDL_Renderer *r, int x, int y,
     }
 }
 
-/* -----------------------------------------------------------------------
- * Paisagem pixelada
- *
- * Tudo desenhado com blocos de tamanho BK×BK para look pixel-art.
- * BK=4: céu, estrelas, aurora, montanhas, neve — tudo em blocos.
- * --------------------------------------------------------------------- */
 #define BK 4   /* tamanho do bloco de paisagem */
 
-/* Preenchimento em blocos */
+
 static void bfill(SDL_Renderer *r, int x, int y, int w, int h,
                   uint8_t R, uint8_t G, uint8_t B) {
     SDL_SetRenderDrawColor(r, R, G, B, 255);
-    /* Snap para grid de BK */
     int x0 = (x / BK) * BK;
     int y0 = (y / BK) * BK;
     int x1 = ((x+w+BK-1) / BK) * BK;
@@ -103,7 +82,6 @@ static void bfill(SDL_Renderer *r, int x, int y, int w, int h,
     SDL_RenderFillRect(r, &rc);
 }
 
-/* Uma "linha" horizontal pixelada (espessura BK) */
 static void bline(SDL_Renderer *r, int y, uint8_t R, uint8_t G, uint8_t B) {
     int y0 = (y / BK) * BK;
     SDL_SetRenderDrawColor(r, R, G, B, 255);
@@ -111,41 +89,30 @@ static void bline(SDL_Renderer *r, int y, uint8_t R, uint8_t G, uint8_t B) {
     SDL_RenderFillRect(r, &rc);
 }
 
-/* LCG simples para estrelas determinísticas */
 static unsigned int lcg(unsigned int s) {
     return s * 1664525u + 1013904223u;
 }
 
 static void draw_pixel_background(SDL_Renderer *r) {
-    /* --- Céu: blocos de cor, 3 faixas de degradê --- */
-    /* Faixa 1: azul escuro (topo) */
     bfill(r, 0, 0, SCREEN_W, SCREEN_H/3, 8, 18, 60);
-    /* Faixa 2: azul médio */
     bfill(r, 0, SCREEN_H/3, SCREEN_W, SCREEN_H/3, 14, 42, 100);
-    /* Faixa 3 (céu→horizonte): azul mais claro */
-    int sky_h = SCREEN_H * 58 / 100; /* horizonte a 58% */
+    int sky_h = SCREEN_H * 58 / 100; 
     bfill(r, 0, SCREEN_H*2/3, SCREEN_W, sky_h - SCREEN_H*2/3 + BK, 20, 70, 140);
 
-    /* --- Estrelas (blocos BK×BK) --- */
     unsigned int seed = 42;
     for (int i = 0; i < 80; i++) {
         seed = lcg(seed); int sx = (int)(seed % (unsigned)SCREEN_W);
         seed = lcg(seed); int sy = (int)(seed % (unsigned)(sky_h * 55 / 100));
-        seed = lcg(seed); int bright = (int)(seed % 3); /* 0=dim 1=med 2=bright */
+        seed = lcg(seed); int bright = (int)(seed % 3); 
         uint8_t lv = (bright == 2) ? 255 : (bright == 1) ? 180 : 110;
-        /* Snap para grid */
         int bx = (sx / BK) * BK;
         int by = (sy / BK) * BK;
         fill_rect(r, bx, by, BK, BK, lv, lv, lv);
     }
 
-    /* --- Aurora boreal: faixas diagonais em blocos --- */
-    /* Cada faixa é desenhada como blocos BK×BK ao longo de uma diagonal */
-    /* Verde-azulado */
     {
-        int y_start = 6*BK, y_end = 11*BK; /* em pixels */
+        int y_start = 6*BK, y_end = 11*BK; 
         for (int bx = 0; bx < SCREEN_W; bx += BK) {
-            /* deslocamento vertical proporcional à posição x */
             int dy = (bx * BK) / (SCREEN_W / BK);
             for (int by = y_start; by < y_end; by += BK) {
                 int fy = by + dy;
@@ -154,7 +121,6 @@ static void draw_pixel_background(SDL_Renderer *r) {
             }
         }
     }
-    /* Azul-ciano */
     {
         int y_start = 11*BK, y_end = 15*BK;
         for (int bx = 0; bx < SCREEN_W; bx += BK) {
@@ -166,7 +132,6 @@ static void draw_pixel_background(SDL_Renderer *r) {
             }
         }
     }
-    /* Violeta */
     {
         int y_start = 14*BK, y_end = 18*BK;
         for (int bx = 0; bx < SCREEN_W; bx += BK) {
@@ -179,12 +144,7 @@ static void draw_pixel_background(SDL_Renderer *r) {
         }
     }
 
-    /* --- Montanhas de gelo pixeladas ao fundo --- */
-    /* Definidas como perfil de altura por bloco */
-    /* Altura (em blocos BK) para cada coluna de blocos */
     int mcols = SCREEN_W / BK;
-    /* Perfil manual simplificado: 5 picos distribuídos */
-    /* Usamos uma função que gera um perfil "dente de serra" */
     int peaks[] = { 0, mcols/6, mcols*2/6, mcols*3/6, mcols*4/6, mcols*5/6, mcols };
     int peak_h[] = { sky_h/BK, sky_h/BK - 8, sky_h/BK - 14,
                      sky_h/BK - 6,  sky_h/BK - 18,
@@ -192,7 +152,6 @@ static void draw_pixel_background(SDL_Renderer *r) {
     int num_peaks = 7;
 
     for (int bx = 0; bx < mcols; bx++) {
-        /* Interpolar entre picos */
         int seg = 0;
         for (int p = 0; p < num_peaks - 1; p++) {
             if (bx >= peaks[p] && bx <= peaks[p+1]) { seg = p; break; }
@@ -201,24 +160,19 @@ static void draw_pixel_background(SDL_Renderer *r) {
                   ? (float)(bx - peaks[seg]) / (peaks[seg+1] - peaks[seg])
                   : 0.0f;
         int h_top = (int)(peak_h[seg] + t * (peak_h[seg+1] - peak_h[seg]));
-        /* Coluna de montanha do topo h_top até sky_h */
         for (int by = h_top; by < sky_h/BK; by++) {
             uint8_t R, G, B;
-            if (by == h_top) { R=200; G=230; B=248; } /* neve no topo */
-            else             { R= 10; G= 40; B= 90; } /* azul escuro */
+            if (by == h_top) { R=200; G=230; B=248; }
+            else             { R= 10; G= 40; B= 90; } 
             fill_rect(r, bx*BK, by*BK, BK, BK, R, G, B);
         }
     }
 
-    /* --- Chão de neve pixelado --- */
-    /* Faixa 1: neve azul-clara */
     bfill(r, 0, sky_h, SCREEN_W, (SCREEN_H - sky_h)*2/3,
           190, 230, 252);
-    /* Faixa 2: neve mais branca (perto da câmera) */
     bfill(r, 0, sky_h + (SCREEN_H-sky_h)*2/3, SCREEN_W, SCREEN_H,
           220, 245, 255);
 
-    /* Sombras na neve: blocos azuis escuros espalhados */
     seed = 137;
     for (int i = 0; i < 30; i++) {
         seed = lcg(seed); int sx = (int)(seed % (unsigned)SCREEN_W);
@@ -229,10 +183,8 @@ static void draw_pixel_background(SDL_Renderer *r) {
         fill_rect(r, bx, by, sw, BK, 140, 190, 230);
     }
 
-    /* Linha de horizonte (neve brilhante) */
     bline(r, sky_h, 255, 255, 255);
 
-    /* Flocos de neve: blocos BK×BK espalhados */
     seed = 999;
     for (int i = 0; i < 60; i++) {
         seed = lcg(seed); int sx = (int)(seed % (unsigned)SCREEN_W);
@@ -243,9 +195,6 @@ static void draw_pixel_background(SDL_Renderer *r) {
     }
 }
 
-/* -----------------------------------------------------------------------
- * Texto helpers
- * --------------------------------------------------------------------- */
 static void draw_text_centered(Renderer *r, TTF_Font *font,
                                 const char *text, int y, SDL_Color color) {
     SDL_Surface *surf = TTF_RenderUTF8_Blended(font, text, color);
@@ -288,9 +237,6 @@ static void draw_overlay(Renderer *r, uint8_t alpha) {
     SDL_SetRenderDrawBlendMode(r->renderer, SDL_BLENDMODE_NONE);
 }
 
-/* -----------------------------------------------------------------------
- * render_init / render_destroy
- * --------------------------------------------------------------------- */
 int render_init(Renderer *r, SDL_Renderer *sdl_renderer) {
     r->renderer = sdl_renderer;
     const char *font_paths[] = {
@@ -323,9 +269,6 @@ void render_destroy(Renderer *r) {
     if (r->font_sm) TTF_CloseFont(r->font_sm);
 }
 
-/* -----------------------------------------------------------------------
- * Telas
- * --------------------------------------------------------------------- */
 static void render_menu(Renderer *r, const Game *g) {
     SDL_Color white  = {255, 255, 255, 255};
     SDL_Color yellow = {255, 220,  60, 255};
@@ -372,28 +315,22 @@ static void render_playing(Renderer *r, const Game *g) {
     SDL_Color white = {255, 255, 255, 255};
     draw_center_line(r);
 
-    /* P1 esquerda: espelhado → bico aponta para direita (enfrenta campo) */
     SDL_Color p1_body = {15, 15, 15, 255};
     draw_penguin(r->renderer, (int)g->p1.rect.x, (int)g->p1.rect.y, p1_body, 1);
-
-    /* P2 direita: original → bico aponta para esquerda (enfrenta P1) */
     SDL_Color p2_body = {20, 55, 140, 255};
     draw_penguin(r->renderer, (int)g->p2.rect.x, (int)g->p2.rect.y, p2_body, 0);
 
-    /* Bola */
     SDL_SetRenderDrawColor(r->renderer, 255, 255, 255, 255);
     SDL_Rect rb = { (int)g->ball.rect.x, (int)g->ball.rect.y,
                     (int)g->ball.rect.w, (int)g->ball.rect.h };
     SDL_RenderFillRect(r->renderer, &rb);
 
-    /* Placar */
     char sc[32];
     snprintf(sc, sizeof(sc), "%d", g->p1.score);
     draw_text(r, r->font_lg, sc, SCREEN_W/2 - 80, 20, white);
     snprintf(sc, sizeof(sc), "%d", g->p2.score);
     draw_text(r, r->font_lg, sc, SCREEN_W/2 + 40, 20, white);
 
-    /* Nomes */
     SDL_Color ice = {180, 230, 255, 255};
     draw_text(r, r->font_sm, g->p1_name, PADDLE_MARGIN, SCREEN_H - 30, ice);
     int tw = 0;
@@ -470,9 +407,6 @@ static void render_scoreboard(Renderer *r, const Scoreboard *sb) {
     draw_text_centered(r, r->font_sm, "Pressione Esc ou M para voltar", 555, ice);
 }
 
-/* -----------------------------------------------------------------------
- * Frame principal
- * --------------------------------------------------------------------- */
 void render_frame(Renderer *r, const Game *g, const Scoreboard *sb) {
     draw_pixel_background(r->renderer);
 
