@@ -12,7 +12,6 @@ static void fill_rect(SDL_Renderer *r, int x, int y, int w, int h,
     SDL_Rect rc = { x, y, w, h };
     SDL_RenderFillRect(r, &rc);
 }
-
 #define PS 3   /* tamanho de cada pixel do sprite na tela */
 
 static void ppx(SDL_Renderer *r, int gx, int gy, int ox, int oy,
