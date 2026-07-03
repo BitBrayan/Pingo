@@ -79,7 +79,7 @@ int main(void) {
 
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
-            if (input_handle(&event, &game, &sb)) {
+            if (input_handle(&event, &game, &sb, window)) {
                 running = 0;
             }
         }

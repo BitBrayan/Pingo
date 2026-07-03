@@ -238,6 +238,11 @@ static void draw_overlay(Renderer *r, uint8_t alpha) {
 
 int render_init(Renderer *r, SDL_Renderer *sdl_renderer) {
     r->renderer = sdl_renderer;
+
+    if (SDL_RenderSetLogicalSize(r->renderer, SCREEN_W, SCREEN_H) != 0) {
+        fprintf(stderr, "Erro ao configurar tamanho lógico do renderer: %s\n", SDL_GetError());
+    }
+
     const char *font_paths[] = {
         "/usr/share/fonts/truetype/dejavu/DejaVuSansMono.ttf",
         "/usr/share/fonts/truetype/liberation/LiberationMono-Regular.ttf",
@@ -269,11 +274,11 @@ void render_destroy(Renderer *r) {
 }
 
 static void render_menu(Renderer *r, const Game *g) {
-    SDL_Color white  = {255, 255, 255, 255};
-    SDL_Color yellow = {255, 220,  60, 255};
-    SDL_Color ice    = {180, 230, 255, 255};
-    draw_text_centered(r, r->font_lg, "PINGO", 60, white);
-    draw_text_centered(r, r->font_sm, "Aventura Gelada no Polo Sul", 120, ice);
+    SDL_Color yellow = {180, 100, 0, 255};
+    SDL_Color ice    = {30, 60, 120, 255};
+    SDL_Color title_white = {255, 255, 255, 255};
+    draw_text_centered(r, r->font_lg, "PINGO", 60, title_white);
+    draw_text_centered(r, r->font_sm, "Aventura Gelada no Polo Sul", 120, title_white);
     const char *items[] = {"1 Jogador vs CPU","2 Jogadores","Ver Scoreboard","Sair"};
     for (int i = 0; i < 4; i++) {
         int y = 220 + i * 70;
@@ -289,10 +294,11 @@ static void render_menu(Renderer *r, const Game *g) {
 }
 
 static void render_name_input(Renderer *r, const Game *g) {
-    SDL_Color white  = {255, 255, 255, 255};
-    SDL_Color yellow = {255, 220,  60, 255};
-    SDL_Color ice    = {180, 230, 255, 255};
+    SDL_Color white  = {10, 10, 10, 255};
+    SDL_Color yellow = {180, 100, 0, 255};
+    SDL_Color ice    = {30, 60, 120, 255};
     draw_text_centered(r, r->font_md, "NOME DOS JOGADORES", 100, white);
+    draw_text_centered(r, r->font_sm, "Primeiro a alcançar 7 pontos vence!", 150, ice);
     SDL_Color c1 = (g->name_input_field == 0) ? yellow : ice;
     draw_text_centered(r, r->font_sm, "Jogador 1 (W/S):", 200, ice);
     char buf1[48];
@@ -301,7 +307,7 @@ static void render_name_input(Renderer *r, const Game *g) {
     draw_text_centered(r, r->font_md, buf1, 228, c1);
     if (g->mode == MODE_2P) {
         SDL_Color c2 = (g->name_input_field == 1) ? yellow : ice;
-        draw_text_centered(r, r->font_sm, "Jogador 2 (setas):", 310, ice);
+        draw_text_centered(r, r->font_sm, "Jogador 2 (W/S):", 310, ice);
         char buf2[48];
         snprintf(buf2, sizeof(buf2), (g->name_input_field==1) ? "%s_" : "%s",
                  (g->name_input_field==1) ? g->input_buf : g->p2_name);
@@ -311,7 +317,7 @@ static void render_name_input(Renderer *r, const Game *g) {
 }
 
 static void render_playing(Renderer *r, const Game *g) {
-    SDL_Color white = {255, 255, 255, 255};
+    SDL_Color white = {10, 10, 10, 255};
     draw_center_line(r);
 
     SDL_Color p1_body = {15, 15, 15, 255};
@@ -330,7 +336,8 @@ static void render_playing(Renderer *r, const Game *g) {
     snprintf(sc, sizeof(sc), "%d", g->p2.score);
     draw_text(r, r->font_lg, sc, SCREEN_W/2 + 40, 20, white);
 
-    SDL_Color ice = {180, 230, 255, 255};
+    /* Nomes */
+    SDL_Color ice = {30, 60, 120, 255};
     draw_text(r, r->font_sm, g->p1_name, PADDLE_MARGIN, SCREEN_H - 30, ice);
     int tw = 0;
     TTF_SizeUTF8(r->font_sm, g->p2_name, &tw, NULL);
@@ -340,8 +347,8 @@ static void render_playing(Renderer *r, const Game *g) {
 static void render_paused(Renderer *r, const Game *g) {
     render_playing(r, g);
     draw_overlay(r, 140);
-    SDL_Color white = {255, 255, 255, 255};
-    SDL_Color ice   = {180, 230, 255, 255};
+    SDL_Color white = {10, 10, 10, 255};
+    SDL_Color ice   = {30, 60, 120, 255};
     draw_text_centered(r, r->font_lg, "PAUSADO", SCREEN_H/2 - 50, white);
     draw_text_centered(r, r->font_sm, "Pressione P para continuar", SCREEN_H/2 + 30, ice);
 }
@@ -349,16 +356,16 @@ static void render_paused(Renderer *r, const Game *g) {
 static void render_round_over(Renderer *r, const Game *g) {
     render_playing(r, g);
     draw_overlay(r, 100);
-    SDL_Color white = {255, 255, 255, 255};
+    SDL_Color white = {10, 10, 10, 255};
     char msg[64];
     snprintf(msg, sizeof(msg), "%d  x  %d", g->p1.score, g->p2.score);
     draw_text_centered(r, r->font_lg, msg, SCREEN_H/2 - 40, white);
 }
 
 static void render_game_over(Renderer *r, const Game *g) {
-    SDL_Color white  = {255, 255, 255, 255};
-    SDL_Color yellow = {255, 220,  60, 255};
-    SDL_Color ice    = {180, 230, 255, 255};
+    SDL_Color white  = {10, 10, 10, 255};
+    SDL_Color yellow = {180, 100, 0, 255};
+    SDL_Color ice    = {30, 60, 120, 255};
     draw_text_centered(r, r->font_lg, "FIM DE JOGO", 80, white);
     char msg[128];
     const char *winner = (g->p1.score > g->p2.score) ? g->p1_name : g->p2_name;
@@ -374,8 +381,8 @@ static void render_game_over(Renderer *r, const Game *g) {
 
 static void render_scoreboard(Renderer *r, const Scoreboard *sb) {
     SDL_Color white  = {255, 255, 255, 255};
-    SDL_Color yellow = {255, 220,  60, 255};
-    SDL_Color ice    = {180, 230, 255, 255};
+    SDL_Color yellow = {255, 220, 60, 255};
+    SDL_Color ice    = {80, 130, 180, 255};
     draw_text_centered(r, r->font_md, "SCOREBOARD", 30, white);
     if (sb->count == 0) {
         draw_text_centered(r, r->font_sm, "Nenhuma partida registrada ainda.", 220, ice);
@@ -407,6 +414,8 @@ static void render_scoreboard(Renderer *r, const Scoreboard *sb) {
 }
 
 void render_frame(Renderer *r, const Game *g, const Scoreboard *sb) {
+    SDL_SetRenderDrawColor(r->renderer, 0, 0, 0, 255);
+    SDL_RenderClear(r->renderer);
     draw_pixel_background(r->renderer);
 
     switch (g->state) {

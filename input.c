@@ -28,12 +28,22 @@ static void save_result(Game *g, Scoreboard *sb) {
     scoreboard_save(sb, SCOREBOARD_FILE);
 }
 
-int input_handle(SDL_Event *event, Game *g, Scoreboard *sb) {
+int input_handle(SDL_Event *event, Game *g, Scoreboard *sb, SDL_Window *window) {
     if (event->type == SDL_QUIT) return 1;
 
     if (event->type == SDL_KEYDOWN) {
         SDL_Keycode key = event->key.keysym.sym;
 
+        if (key == SDLK_f && (event->key.keysym.mod & KMOD_CTRL)) {
+            Uint32 flags = SDL_GetWindowFlags(window);
+            if (flags & SDL_WINDOW_FULLSCREEN_DESKTOP) {
+                SDL_SetWindowFullscreen(window, 0);
+            } else {
+                SDL_SetWindowFullscreen(window, SDL_WINDOW_FULLSCREEN_DESKTOP);
+            }
+        }
+
+        /* Teclas de movimento — armazena estado */
         if (key == SDLK_w)      key_w    = 1;
         if (key == SDLK_s)      key_s    = 1;
         if (key == SDLK_UP)     key_up   = 1;
@@ -158,9 +168,18 @@ int input_handle(SDL_Event *event, Game *g, Scoreboard *sb) {
 void input_update_paddles(Game *g) {
     if (g->state != STATE_PLAYING && g->state != STATE_ROUND_OVER) return;
 
-    if (key_w && !key_s)       g->p1.vy = -PADDLE_SPEED;
-    else if (key_s && !key_w)  g->p1.vy =  PADDLE_SPEED;
-    else                       g->p1.vy = 0;
+    /* P1 */
+    if (g->mode == MODE_1P) {
+        /* Modo 1P: W/S e setas funcionam */
+        if ((key_w || key_up) && !(key_s || key_down))       g->p1.vy = -PADDLE_SPEED;
+        else if ((key_s || key_down) && !(key_w || key_up))  g->p1.vy =  PADDLE_SPEED;
+        else                                                  g->p1.vy = 0;
+    } else {
+        /* Modo 2P: apenas W/S para P1 */
+        if (key_w && !key_s)       g->p1.vy = -PADDLE_SPEED;
+        else if (key_s && !key_w)  g->p1.vy =  PADDLE_SPEED;
+        else                       g->p1.vy = 0;
+    }
 
     if (g->mode == MODE_2P) {
         if (key_up && !key_down)       g->p2.vy = -PADDLE_SPEED;
