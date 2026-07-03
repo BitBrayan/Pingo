@@ -2,11 +2,17 @@
 #include <math.h>
 #include <stdlib.h>
 #include <string.h>
+#include "audio.h"
 
 void game_init(Game *g) {
     memset(g, 0, sizeof(Game));
-    g->state    = STATE_MENU;
-    g->menu_sel = 0;
+    g->state          = STATE_MENU;
+    g->menu_sel       = 0;
+    g->options_sel    = 0;
+    g->video_mode     = VIDEO_FULLSCREEN;
+    g->resolution_idx = 3;
+    g->music_volume   = 40;
+    g->sfx_volume     = 40;
     strcpy(g->p1_name, "Jogador 1");
     strcpy(g->p2_name, "Jogador 2");
 }
@@ -109,6 +115,8 @@ void game_update(Game *g, float dt) {
         g->ball.vx = g->ball.speed * cosf(angle);
         g->ball.vy = g->ball.speed * sinf(angle);
         g->ball.rect.x = g->p1.rect.x + PADDLE_W + 1.0f;
+        /* Som de batida */
+        audio_play_sfx(SFX_HIT);
     }
 
     if (g->ball.vx > 0 && rect_overlap(&g->ball.rect, &g->p2.rect)) {
@@ -124,10 +132,13 @@ void game_update(Game *g, float dt) {
         g->ball.vx = -g->ball.speed * cosf(angle);
         g->ball.vy =  g->ball.speed * sinf(angle);
         g->ball.rect.x = g->p2.rect.x - BALL_SIZE - 1.0f;
+        /* Som de batida */
+        audio_play_sfx(SFX_HIT);
     }
 
     if (g->ball.rect.x + BALL_SIZE < 0) {
         g->p2.score++;
+        audio_play_sfx(SFX_SCORE);
         if (g->p2.score >= WIN_SCORE) {
             g->state = STATE_GAME_OVER;
         } else {
@@ -136,6 +147,7 @@ void game_update(Game *g, float dt) {
         }
     } else if (g->ball.rect.x > SCREEN_W) {
         g->p1.score++;
+        audio_play_sfx(SFX_SCORE);
         if (g->p1.score >= WIN_SCORE) {
             g->state = STATE_GAME_OVER;
         } else {
